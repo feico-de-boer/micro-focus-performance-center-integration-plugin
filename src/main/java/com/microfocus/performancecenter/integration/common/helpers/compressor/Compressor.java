@@ -23,14 +23,7 @@
 
 package com.microfocus.performancecenter.integration.common.helpers.compressor;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -112,6 +105,21 @@ public class Compressor implements ICompressor {
         if(directoryFiles != null) {
             for (File f : directoryFiles) {
                 if (f.isDirectory()) {
+	                /*
+	                 * Create an 'directory entry' in the zip-file. It should not be neccessary according the 
+	                 * zip specifications but Loadrunner enterprise uploaded seems to strip folder in a script 
+	                 * if this is not here (eg. node_modules in a DevWeb script).
+	                 */
+	                String path = f.getAbsolutePath();
+	                /*
+	                 * Note: According to the zip specifications https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+	                 * section 4.4.17.1 the path separator must be a forward slash.
+	                 */
+	                ZipEntry ze = new ZipEntry(path.substring(rootPathLength).replace("\\", "/") + "/");
+	                target.putNextEntry(ze);
+	                /*
+	                 * Now recurse into the directory structure and continue.
+	                 */
                     putCompressEntriesForDirectory(target, f, rootPathLength);
                 } else {
                     putCompressEntriesForFile(target, f, rootPathLength);
