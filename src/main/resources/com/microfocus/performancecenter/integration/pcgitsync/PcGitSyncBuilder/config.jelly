@@ -245,4 +245,15 @@
             </select>
         </f:entry>
 
+     <f:entry title="Force script upload" field="forceScriptUploads">
+            <select id="forceScriptUploads" name="pcGit.forceScriptUploads" >
+                <j:forEach var="action" items="${descriptor.YesOrNo}">
+                    <f:option selected="${action == instance.pcGitSyncModel.forceScriptUploads}"
+                        value="${action}">
+                        ${action.value}
+                            </f:option>
+                </j:forEach>
+            </select>
+        </f:entry>
+
 </j:jelly>

@@ -29,7 +29,7 @@
         <version>4.83</version>
     </parent>
     <artifactId>micro-focus-performance-center-integration</artifactId>
-    <version>1.1.10-SNAPSHOT-INFOR</version>
+    <version>1.1.10-SNAPSHOT-INFOR-FSU</version>
     <packaging>hpi</packaging>
     <name>OpenText Enterprise Performance Engineering integration With Git</name>
     <!--<description>The plugin integrates OpenText Enterprise Performance Engineering with Git.</description>-->

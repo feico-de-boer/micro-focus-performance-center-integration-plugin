@@ -26,13 +26,14 @@
  * */
 package com.microfocus.performancecenter.integration.pcgitsync;
 
-import com.microfocus.performancecenter.integration.pcgitsync.helper.UploadScriptMode;
-import com.microfocus.performancecenter.integration.pcgitsync.helper.YesOrNo;
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+
+import com.microfocus.performancecenter.integration.pcgitsync.helper.UploadScriptMode;
+import com.microfocus.performancecenter.integration.pcgitsync.helper.YesOrNo;
 
 public class PcGitSyncModel implements Serializable {
 
@@ -53,6 +54,7 @@ public class PcGitSyncModel implements Serializable {
     private final UploadScriptMode uploadScriptMode;
     private final YesOrNo removeScriptFromPC;
     private final YesOrNo importTests;
+    private final YesOrNo forceScriptUploads;
     private final boolean authenticateWithToken;
     private String buildParameters;
 
@@ -60,7 +62,7 @@ public class PcGitSyncModel implements Serializable {
     public PcGitSyncModel(String description, String pcServerName, String serverAndPort, boolean httpsProtocol,
                           String credentialsId, String almDomain, String almProject,
                           String proxyOutURL, String credentialsProxyId,
-                          String subjectTestPlan, UploadScriptMode uploadScriptMode, YesOrNo removeScriptFromPC, YesOrNo importTests, boolean authenticateWithToken, String buildParameters) {
+                          String subjectTestPlan, UploadScriptMode uploadScriptMode, YesOrNo removeScriptFromPC, YesOrNo importTests, YesOrNo forceScriptUploads, boolean authenticateWithToken, String buildParameters) {
         this.description = description;
         this.pcServerName = pcServerName;
         this.serverAndPort = serverAndPort;
@@ -80,6 +82,7 @@ public class PcGitSyncModel implements Serializable {
         this.uploadScriptMode = uploadScriptMode;
         this.removeScriptFromPC = removeScriptFromPC;
         this.importTests = importTests;
+        this.forceScriptUploads = forceScriptUploads;
         this.buildParameters = "";
         this.authenticateWithToken = authenticateWithToken;
     }
@@ -193,6 +196,10 @@ public class PcGitSyncModel implements Serializable {
         return this.uploadScriptMode;
     }
 
+    public YesOrNo getForceScriptUploads() {
+        return this.forceScriptUploads;
+    }
+
     public YesOrNo getRemoveScriptFromPC() {
         return this.removeScriptFromPC;
     }
@@ -208,9 +215,9 @@ public class PcGitSyncModel implements Serializable {
 
     public String runParamsToString() {
         return String.format("[PCServer='%s', HTTPSProtocol='%s', CredentialsId='%s', Domain='%s', Project='%s', " +
-                        "proxy='%s', CredentialsProxyId='%s', subjectTestPlan = '%s', uploadScriptMode='%s', removeScriptFromPC='%s', importTests='%s', UseTokenForAuthentication= '%s']",
+                        "proxy='%s', CredentialsProxyId='%s', subjectTestPlan = '%s', uploadScriptMode='%s', removeScriptFromPC='%s', importTests='%s', forceScriptUploads='%s', UseTokenForAuthentication= '%s']",
                 pcServerName, httpsProtocol, credentialsId, almDomain, almProject,
-                proxyOutURL, credentialsProxyId, subjectTestPlan, uploadScriptMode.getValue(), removeScriptFromPC.getValue(), importTests.getValue(), authenticateWithToken);
+                proxyOutURL, credentialsProxyId, subjectTestPlan, uploadScriptMode.getValue(), removeScriptFromPC.getValue(), importTests.getValue(), forceScriptUploads.getValue(), authenticateWithToken);
     }
 
     //public boolean getAuthenticateWithToken(){ return this.authenticateWithToken; }

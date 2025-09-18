@@ -23,17 +23,6 @@
 
 package com.microfocus.performancecenter.integration.common.helpers.services;
 
-import com.cloudbees.jenkins.plugins.changelog.Changes;
-import com.microfocus.performancecenter.integration.common.helpers.utils.ModifiedFile;
-import com.microfocus.performancecenter.integration.common.helpers.utils.ModifiedType;
-import hudson.Extension;
-import hudson.model.AbstractBuild;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.scm.ChangeLogSet;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-
-import javax.annotation.CheckForNull;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,7 +30,20 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.CheckForNull;
+
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+
+import com.cloudbees.jenkins.plugins.changelog.Changes;
 import static com.microfocus.performancecenter.integration.common.helpers.utils.LogHelper.log;
+import com.microfocus.performancecenter.integration.common.helpers.utils.ModifiedFile;
+import com.microfocus.performancecenter.integration.common.helpers.utils.ModifiedType;
+
+import hudson.Extension;
+import hudson.model.AbstractBuild;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.scm.ChangeLogSet;
 
 @Extension
 public class ModifiedFiles {
@@ -71,6 +73,10 @@ public class ModifiedFiles {
 
         Run<?, ?> lastSuccess = current.getPreviousSuccessfulBuild();
 
+        // if (true) {
+        //     log(listener, "Forced script upload is enabled. All scripts will be uploaded.", addDate);
+        //     return null;            
+        // }
         if (lastSuccess == null) {
             log(listener, "No previously successful build was found. All scripts will be uploaded.", addDate);
             return null;
@@ -82,6 +88,7 @@ public class ModifiedFiles {
         log(listener, "The last successful build was found (ID = %d). Only modified scripts will be loaded", addDate, lastSuccess.getNumber());
 
         List<ChangeLogSet> changeLogList = new Changes((AbstractBuild) current, lastSuccess.getNumber() + 1).getChanges();
+        // List<ChangeLogSet> changeLogList = new Changes((AbstractBuild) current, lastSuccess.getNumber()).getChanges();
         return getAllChangedFiles(Paths.get(remoteWorkspacePath), changeLogList);
     }
 

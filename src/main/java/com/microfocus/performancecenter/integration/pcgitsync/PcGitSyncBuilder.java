@@ -27,6 +27,23 @@
 
 package com.microfocus.performancecenter.integration.pcgitsync;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
+
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
@@ -37,38 +54,32 @@ import com.google.inject.Injector;
 import com.microfocus.performancecenter.integration.common.helpers.configuration.ConfigurationService;
 import com.microfocus.performancecenter.integration.common.helpers.services.ModifiedFiles;
 import com.microfocus.performancecenter.integration.common.helpers.utils.BuildParametersAndEnvironmentVariables;
+import static com.microfocus.performancecenter.integration.common.helpers.utils.LogHelper.log;
+import static com.microfocus.performancecenter.integration.common.helpers.utils.LogHelper.logStackTrace;
 import com.microfocus.performancecenter.integration.common.helpers.utils.ModifiedFile;
 import com.microfocus.performancecenter.integration.configuresystem.ConfigureSystemSection;
 import com.microfocus.performancecenter.integration.pcgitsync.helper.AbstractPcGitBuildStep;
 import com.microfocus.performancecenter.integration.pcgitsync.helper.AbstractPcGitBuildStepDescriptor;
 import com.microfocus.performancecenter.integration.pcgitsync.helper.UploadScriptMode;
 import com.microfocus.performancecenter.integration.pcgitsync.helper.YesOrNo;
-import hudson.*;
-import hudson.model.*;
+
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Util;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.Item;
+import hudson.model.Queue;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.model.queue.Tasks;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import static com.microfocus.performancecenter.integration.common.helpers.utils.LogHelper.log;
-import static com.microfocus.performancecenter.integration.common.helpers.utils.LogHelper.logStackTrace;
 
 public class PcGitSyncBuilder extends AbstractPcGitBuildStep<PcGitSyncBuilder.DescriptorImpl> implements SimpleBuildStep {
 
@@ -89,6 +100,7 @@ public class PcGitSyncBuilder extends AbstractPcGitBuildStep<PcGitSyncBuilder.De
     private final UploadScriptMode uploadScriptMode;
     private final YesOrNo removeScriptFromPC;
     private final YesOrNo importTests;
+    private final YesOrNo forceScriptUploads;
     private final boolean authenticateWithToken;
     private String credentialsId;
     private String credentialsProxyId;
@@ -113,6 +125,7 @@ public class PcGitSyncBuilder extends AbstractPcGitBuildStep<PcGitSyncBuilder.De
             UploadScriptMode uploadScriptMode,
             YesOrNo removeScriptFromPC,
             YesOrNo importTests,
+            YesOrNo forceScriptUploads,
             boolean authenticateWithToken) {
 
         this.description = description;
@@ -135,6 +148,7 @@ public class PcGitSyncBuilder extends AbstractPcGitBuildStep<PcGitSyncBuilder.De
         this.uploadScriptMode = uploadScriptMode;
         this.removeScriptFromPC = removeScriptFromPC;
         this.importTests = importTests;
+        this.forceScriptUploads = forceScriptUploads;
         this.buildParameters = "";
         this.authenticateWithToken = authenticateWithToken;
 
@@ -153,6 +167,7 @@ public class PcGitSyncBuilder extends AbstractPcGitBuildStep<PcGitSyncBuilder.De
                         this.uploadScriptMode,
                         this.removeScriptFromPC,
                         this.importTests,
+                        this.forceScriptUploads,
                         this.authenticateWithToken,
                         this.buildParameters);
     }
@@ -272,9 +287,20 @@ public class PcGitSyncBuilder extends AbstractPcGitBuildStep<PcGitSyncBuilder.De
             log(listener, "Error: IllegalStateException '%s'", addDate, ex.getMessage());
         }
 
-        Set<ModifiedFile> modifiedFiles = getDescriptor()
-                .getModifiedFiles()
-                .getModifiedFilesSinceLastSuccess(listener, build, workspace.getRemote());
+        // Set<ModifiedFile> modifiedFiles = getDescriptor()
+        //             .getModifiedFiles()
+        //             .getModifiedFilesSinceLastSuccess(listener, build, workspace.getRemote());
+
+        Set<ModifiedFile> modifiedFiles = null;
+
+        if (!isForceScriptUploads()) {
+            log(listener, "Force script upload is not requested, uploading changed scripts.", addDate);
+            modifiedFiles = getDescriptor()
+                    .getModifiedFiles()
+                    .getModifiedFilesSinceLastSuccess(listener, build, workspace.getRemote());
+        } else {
+            log(listener, "Force script upload is requested, uploading all scripts.", addDate);
+        }
 
         usernamePCPasswordCredentials = getCredentialsId(credentialsId);
         usernamePCPasswordCredentialsForProxy = getCredentialsProxyId(credentialsProxyId);
@@ -368,6 +394,14 @@ public class PcGitSyncBuilder extends AbstractPcGitBuildStep<PcGitSyncBuilder.De
 
     public YesOrNo getImportTests() {
         return getPcGitSyncModel().getImportTests();
+    }
+
+    public YesOrNo getForceScriptUploads() {
+        return getPcGitSyncModel().getForceScriptUploads();
+    }
+
+    public boolean isForceScriptUploads() {
+        return getForceScriptUploads() == YesOrNo.YES;
     }
 
     public boolean isAuthenticateWithToken() {
