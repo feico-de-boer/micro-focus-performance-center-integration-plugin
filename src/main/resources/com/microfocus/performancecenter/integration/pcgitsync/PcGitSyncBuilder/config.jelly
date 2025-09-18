@@ -236,7 +236,7 @@
 
      <f:entry title="Import Tests" field="importTests">
             <select id="importTests" name="pcGit.importTests" >
-                <j:forEach var="action" items="${descriptor.YesOrNo}">
+                <j:forEach var="action" items="${descriptor.YesOrNoReversed}">
                     <f:option selected="${action == instance.pcGitSyncModel.importTests}"
                         value="${action}">
                         ${action.value}
@@ -247,7 +247,7 @@
 
      <f:entry title="Force script upload" field="forceScriptUploads">
             <select id="forceScriptUploads" name="pcGit.forceScriptUploads" >
-                <j:forEach var="action" items="${descriptor.YesOrNo}">
+                <j:forEach var="action" items="${descriptor.YesOrNoReversed}">
                     <f:option selected="${action == instance.pcGitSyncModel.forceScriptUploads}"
                         value="${action}">
                         ${action.value}

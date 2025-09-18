@@ -587,6 +587,12 @@ public class PcGitSyncBuilder extends AbstractPcGitBuildStep<PcGitSyncBuilder.De
             return PcGitSyncModel.getYesOrNo();
         }
 
+        public List<YesOrNo> getYesOrNoReversed() {
+            List<YesOrNo> reversed = new java.util.ArrayList<>();
+            reversed.addAll(PcGitSyncModel.getYesOrNo());
+            java.util.Collections.reverse(reversed);
+            return reversed;
+        }
 
         public ModifiedFiles getModifiedFiles() {
             return this.modifiedFiles;
