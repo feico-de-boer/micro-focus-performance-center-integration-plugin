@@ -1,6 +1,6 @@
 @rem Custom library version
 @rem ----------------------
-set LIB=c:/LocalData/performance-center-plugins-common-utils/target/plugins-common-custom-1.2.1.1.jar
+set LIB=c:/LocalData/performance-center-plugins-common-utils/target/plugins-common-custom-1.2.0.1.jar
 
 @rem Standard library version
 @rem ------------------------
@@ -11,7 +11,7 @@ set LIB=c:/LocalData/performance-center-plugins-common-utils/target/plugins-comm
   -Dfile=%LIB% ^
   -DgroupId=com.microfocus.adm.performancecenter ^
   -DartifactId=plugins-common-custom ^
-  -Dversion=1.2.1.1 ^
+  -Dversion=1.2.0.1 ^
   -Dpackaging=jar
 
 exit
