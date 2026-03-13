@@ -1,6 +1,6 @@
 @rem Custom library version
 @rem ----------------------
-LIB=c:/LocalData/performance-center-plugins-common-utils/target/plugins-common-custom-1.2.1.1.jar
+set LIB=c:/LocalData/performance-center-plugins-common-utils/target/plugins-common-custom-1.2.1.1.jar
 
 @rem Standard library version
 @rem ------------------------
