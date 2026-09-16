@@ -26,43 +26,6 @@
  * */
 package com.microfocus.performancecenter.integration.pctestrun;
 
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
-import com.cloudbees.plugins.credentials.matchers.IdMatcher;
-import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
-import com.microfocus.performancecenter.integration.common.helpers.configuration.ConfigurationService;
-import com.microfocus.performancecenter.integration.common.helpers.result.model.junit.Error;
-import com.microfocus.performancecenter.integration.common.helpers.result.model.junit.Failure;
-import com.microfocus.performancecenter.integration.common.helpers.result.model.junit.*;
-import com.microfocus.performancecenter.integration.common.helpers.utils.BuildParametersAndEnvironmentVariables;
-import com.microfocus.performancecenter.integration.configuresystem.ConfigureSystemSection;
-import com.microfocus.performancecenter.integration.pctestrun.helper.AdditionalParametersAction;
-import com.thoughtworks.xstream.XStream;
-import hudson.*;
-import hudson.console.HyperlinkNote;
-import hudson.model.*;
-import hudson.model.queue.Tasks;
-import hudson.security.ACL;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
-import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
-import jenkins.model.Jenkins;
-import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.ClientProtocolException;
-import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-
-import javax.annotation.Nonnull;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.io.IOException;
@@ -77,10 +40,73 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.ClientProtocolException;
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import com.cloudbees.plugins.credentials.matchers.IdMatcher;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.PcException;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.PcRunEventLog;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.PcRunEventLogRecord;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.PcRunResponse;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.PostRunAction;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState;
 import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.FINISHED;
 import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.RUN_FAILURE;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.TimeslotDuration;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.TrendReportTypes;
+import com.microfocus.performancecenter.integration.common.helpers.configuration.ConfigurationService;
+import com.microfocus.performancecenter.integration.common.helpers.result.model.junit.Error;
+import com.microfocus.performancecenter.integration.common.helpers.result.model.junit.Failure;
+import com.microfocus.performancecenter.integration.common.helpers.result.model.junit.JUnitTestCaseStatus;
+import com.microfocus.performancecenter.integration.common.helpers.result.model.junit.Testcase;
+import com.microfocus.performancecenter.integration.common.helpers.result.model.junit.Testsuite;
+import com.microfocus.performancecenter.integration.common.helpers.result.model.junit.Testsuites;
+import com.microfocus.performancecenter.integration.common.helpers.utils.BuildParametersAndEnvironmentVariables;
 import static com.microfocus.performancecenter.integration.common.helpers.utils.LogHelper.log;
 import static com.microfocus.performancecenter.integration.common.helpers.utils.LogHelper.logStackTrace;
+import com.microfocus.performancecenter.integration.configuresystem.ConfigureSystemSection;
+import com.microfocus.performancecenter.integration.pctestrun.helper.AdditionalParametersAction;
+import com.thoughtworks.xstream.XStream;
+
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.PluginWrapper;
+import hudson.Util;
+import hudson.console.HyperlinkNote;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Build;
+import hudson.model.BuildListener;
+import hudson.model.Item;
+import hudson.model.ParameterValue;
+import hudson.model.Queue;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.StringParameterValue;
+import hudson.model.TaskListener;
+import hudson.model.queue.Tasks;
+import hudson.security.ACL;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
+import jenkins.tasks.SimpleBuildStep;
 
 public class PcTestRunBuilder extends Builder implements SimpleBuildStep {
 
@@ -408,7 +434,7 @@ public class PcTestRunBuilder extends Builder implements SimpleBuildStep {
             if ((getPcTestRunModel() != null) && (build != null) && (build instanceof AbstractBuild))
                 setPcTestRunModelBuildParameters((AbstractBuild) build, null);
             if (!StringUtils.isBlank(getPcTestRunModel().getDescription()))
-                log(listener, "%s: %s", true, Messages.TestDescription(), getPcTestRunModel().getDescription());
+                log(listener, "%s: %s", true, Messages.TestDescription(), getPcTestRunModel().getDescription(true));
             if (!beforeRun(pcTestRunClient, listener))
                 return null;
 

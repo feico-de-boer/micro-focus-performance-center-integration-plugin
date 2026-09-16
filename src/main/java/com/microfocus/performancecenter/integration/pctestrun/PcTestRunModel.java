@@ -26,12 +26,12 @@
  * */
 package com.microfocus.performancecenter.integration.pctestrun;
 
-import com.microfocus.adm.performancecenter.plugins.common.pcentities.PostRunAction;
-import com.microfocus.adm.performancecenter.plugins.common.pcentities.TimeslotDuration;
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import java.util.Arrays;
 import java.util.List;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.PostRunAction;
 
 public class PcTestRunModel {
 
@@ -296,6 +296,11 @@ public class PcTestRunModel {
         return this.description;
     }
 
+    public String getDescription(boolean fromPcClient) {
+
+        return fromPcClient ? useParameterIfNeeded(buildParameters, this.description) : getDescription();
+    }
+    
     public boolean httpsProtocol() {
         return this.HTTPSProtocol;
     }
