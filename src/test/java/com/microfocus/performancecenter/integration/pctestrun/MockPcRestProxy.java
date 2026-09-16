@@ -23,26 +23,26 @@
 
 package com.microfocus.performancecenter.integration.pctestrun;
 
-import com.microfocus.adm.performancecenter.plugins.common.pcentities.PcException;
-import com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState;
-import com.microfocus.adm.performancecenter.plugins.common.rest.PcRestProxy;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.message.BasicHttpResponse;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.*;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpRequestBase;
+
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.PcException;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState;
+import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.COLLATING_RESULTS;
+import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.CREATING_ANALYSIS_DATA;
+import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.FINISHED;
+import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.INITIALIZING;
+import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.RUNNING;
+import com.microfocus.adm.performancecenter.plugins.common.rest.PcRestProxy;
 
 
 public class MockPcRestProxy extends PcRestProxy {
@@ -59,51 +59,44 @@ public class MockPcRestProxy extends PcRestProxy {
     }
 
     @Override
-    protected HttpResponse executeRequest(HttpRequestBase request) throws PcException, ClientProtocolException,
+    protected String executeRequest(HttpRequestBase request) throws PcException, ClientProtocolException,
             IOException {
-        HttpResponse response = null;
         String requestUrl = request.getURI().toString();
         if (requestUrl.equals(String.format(AUTHENTICATION_LOGIN_URL, PcTestBase.WEB_PROTOCOL, PcTestBase.PC_SERVER_NAME))
                 || requestUrl.equals(String.format(AUTHENTICATION_LOGOUT_URL,
                 PcTestBase.WEB_PROTOCOL, PcTestBase.PC_SERVER_NAME))
                 || requestUrl.equals(String.format(getBaseURL() + "/%s/%s/%s", RUNS_RESOURCE_NAME, PcTestBase.RUN_ID, PcTestBase.STOP_MODE))) {
-            response = getOkResponse();
+            return "";
         } else if (requestUrl.equals(String.format(getBaseURL() + "/%s", RUNS_RESOURCE_NAME))
                 || requestUrl.equals(String.format(getBaseURL() + "/%s/%s", RUNS_RESOURCE_NAME, PcTestBase.RUN_ID))) {
-            response = getOkResponse();
-            response.setEntity(new StringEntity(PcTestBase.runResponseEntity));
+            return PcTestBase.runResponseEntity;
         } else if (requestUrl.equals(String.format(getBaseURL() + "/%s", TESTS_RESOURCE_NAME))
                 || requestUrl.equals(String.format(getBaseURL() + "/%s/%s", TESTS_RESOURCE_NAME, PcTestBase.TEST_ID))) {
-            response = getOkResponse();
-            response.setEntity(new StringEntity(PcTestBase.testResponseEntity));
+            return PcTestBase.testResponseEntity;
         } else if (requestUrl.equals(String.format(getBaseURL() + "/%s/%s", RUNS_RESOURCE_NAME, PcTestBase.RUN_ID_WAIT))) {
-            response = getOkResponse();
-            response.setEntity(new StringEntity(PcTestBase.runResponseEntity.replace("*", runState.next().value())));
+            String body = PcTestBase.runResponseEntity.replace("*", runState.next().value());
             if (!runState.hasNext())
                 runState = initializeRunStateIterator();
+            return body;
         } else if (requestUrl.equals(String.format(getBaseURL() + "/%s/%s/%s", RUNS_RESOURCE_NAME, PcTestBase.RUN_ID,
                 RESULTS_RESOURCE_NAME))) {
-            response = getOkResponse();
-            response.setEntity(new StringEntity(PcTestBase.runResultsEntity));
-        } else if (requestUrl.equals(String.format(getBaseURL() + "/%s/%s/%s/%s/data", RUNS_RESOURCE_NAME, PcTestBase.RUN_ID,
-                RESULTS_RESOURCE_NAME, PcTestBase.REPORT_ID))) {
-            response = getOkResponse();
-            response.setEntity(new FileEntity(
-                    new File(getClass().getResource(PcTestRunBuilder.pcReportArchiveName).getPath()), ContentType.DEFAULT_BINARY));
-
-        } else if (requestUrl.equals(String.format(getBaseURL() + "/%s/%s/%s/%s/data", RUNS_RESOURCE_NAME, PcTestBase.RUN_ID,
-                RESULTS_RESOURCE_NAME, PcTestBase.NV_INSIGHTS_REPORT_ID))) {
-            response = getOkResponse();
-            response.setEntity(new FileEntity(
-                    new File(getClass().getResource(PcTestRunBuilder.pcNVInsightsReportArchiveName).getPath()), ContentType.DEFAULT_BINARY));
+            return PcTestBase.runResultsEntity;
         }
-        if (response == null)
-            throw new PcException(String.format("%s %s is not recognized by PC Rest Proxy", request.getMethod(), requestUrl));
-        return response;
+        throw new PcException(String.format("%s %s is not recognized by PC Rest Proxy", request.getMethod(), requestUrl));
     }
 
-    private HttpResponse getOkResponse() {
-
-        return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+    /**
+     * The report download in plugins-common 1.2.1 no longer routes through
+     * executeRequest, so it cannot be intercepted there. Override the download
+     * directly and copy the bundled test archive to the requested target path.
+     */
+    @Override
+    public boolean GetRunResultData(int runId, int resultId, String localFilePath) throws PcException, IOException {
+        String archiveResource = (resultId == Integer.parseInt(PcTestBase.NV_INSIGHTS_REPORT_ID))
+                ? PcTestRunBuilder.pcNVInsightsReportArchiveName
+                : PcTestRunBuilder.pcReportArchiveName;
+        File sourceArchive = new File(getClass().getResource(archiveResource).getPath());
+        Files.copy(sourceArchive.toPath(), Paths.get(localFilePath), StandardCopyOption.REPLACE_EXISTING);
+        return true;
     }
 }
