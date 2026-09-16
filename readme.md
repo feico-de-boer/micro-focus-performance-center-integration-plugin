@@ -107,7 +107,7 @@ This version provides the following enhancements:
 ### Version 1.1.10
 This version provides the following enhancements:
 - Added a "Force script upload" option to the Git synchronization step, which uploads all performance scripts regardless of the changes detected in SCM.
-- The run description field can now be parametrized using build parameters or environment variables.
+- The run description field can now be parametrized using build parameters or environment variables, including multiple parameter references embedded within the text.
 - Updated the plugin for compatibility with OpenText Enterprise Performance Engineering 26.3.
 - New requirement: Jenkins 2.568.3 and above (requires Java 21).
 - Migrated to the Jakarta EE 9 / Stapler 2 APIs, in line with the newer Jenkins baseline.
