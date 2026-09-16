@@ -29,7 +29,7 @@
         <version>5.30</version>
     </parent>
     <artifactId>micro-focus-performance-center-integration</artifactId>
-    <version>1.1.10-SNAPSHOT-custom-3</version>
+    <version>1.1.10-SNAPSHOT-custom-4</version>
     <packaging>hpi</packaging>
     <name>OpenText Enterprise Performance Engineering integration With Git</name>
     <!--<description>The plugin integrates OpenText Enterprise Performance Engineering with Git.</description>-->
@@ -176,7 +176,7 @@
                                 <argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>
                                 <argument>-s</argument>
                                 <argument>http://localhost:8080</argument>
-                                <argumnent>install-plugin</argumnent>
+                                <argument>install-plugin</argument>
                                 <argument>${project.build.directory}\${project.build.finalName}.${project.packaging}</argument>
                                 <argument>-name</argument>
                                 <argument>"${project.artifactId}"</argument>
@@ -196,18 +196,6 @@
                     <excludes>
                         <exclude>**/InjectedTest.java</exclude>
                     </excludes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>animal-sniffer-maven-plugin</artifactId>
-                <version>1.16</version>
-                <configuration>
-                    <signature>
-                        <groupId>org.codehaus.mojo.signature</groupId>
-                        <artifactId>java18</artifactId>
-                        <version>1.0</version>
-                    </signature>
                 </configuration>
             </plugin>
         </plugins>

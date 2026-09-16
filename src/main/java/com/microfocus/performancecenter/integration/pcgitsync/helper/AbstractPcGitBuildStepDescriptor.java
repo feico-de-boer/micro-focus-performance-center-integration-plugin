@@ -23,11 +23,12 @@
 
 package com.microfocus.performancecenter.integration.pcgitsync.helper;
 
+import org.kohsuke.stapler.StaplerRequest2;
+
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import net.sf.json.JSONObject;
-import org.kohsuke.stapler.StaplerRequest;
 
 public abstract class AbstractPcGitBuildStepDescriptor extends BuildStepDescriptor<Builder> {
 
@@ -42,7 +43,7 @@ public abstract class AbstractPcGitBuildStepDescriptor extends BuildStepDescript
     }
 
     @Override
-    public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+    public boolean configure(StaplerRequest2 req, JSONObject formData) throws FormException {
         req.bindJSON(this, formData);
         save();
         return super.configure(req, formData);
