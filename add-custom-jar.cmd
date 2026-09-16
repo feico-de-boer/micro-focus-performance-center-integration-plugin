@@ -1,4 +1,5 @@
 @rem Custom library version
+@rem NOTE: Not used currently / was attempt to get CLOUD LG support in yaml test files
 @rem ----------------------
 set LIB=c:/LocalData/performance-center-plugins-common-utils/target/plugins-common-custom-1.2.0.1.jar
 

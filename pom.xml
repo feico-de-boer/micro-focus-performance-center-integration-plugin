@@ -253,7 +253,7 @@
             <artifactId>credentials</artifactId>
             <version>2.1.13</version>
         </dependency>
-        <!-- <dependency>
+        <dependency>
             <groupId>com.microfocus.adm.performancecenter</groupId>
             <artifactId>plugins-common</artifactId>
             <version>1.2.1</version>
@@ -267,9 +267,9 @@
                     <artifactId>jaxb-runtime</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency> -->
+        </dependency>
         <!-- custom version of library -->
-        <dependency>
+        <!-- dependency>
             <groupId>com.microfocus.adm.performancecenter</groupId>
             <artifactId>plugins-common-custom</artifactId>
             <version>1.2.0.1</version>
@@ -283,7 +283,7 @@
                     <artifactId>jaxb-runtime</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>        
+        </dependency> -->  
         <!-- end custom version of library -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
