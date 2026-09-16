@@ -33,6 +33,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import com.microfocus.adm.performancecenter.plugins.common.pcentities.PostRunAction;
 
+// Contains Amazon Q GenAI Generated code
+
 public class PcTestRunModel {
 
     public static final String COLLATE = "Collate Results";
@@ -135,6 +137,60 @@ public class PcTestRunModel {
         }
         return attribute;
     }
+
+    // Amazon Q GenAI Generated code - Start
+    /**
+     * Scans the given {@code attribute} for embedded build-parameter references
+     * (for example {@code "Run ${BUILD_NUMBER} on ${NODE_NAME}"}) and returns a
+     * new string where every {@code ${PARAM}} or {@code $PARAM} reference that
+     * has a matching entry in {@code buildParameters} is substituted with its
+     * value. References without a matching build parameter are left unchanged.
+     *
+     * @param buildParameters the build parameters, in the same
+     *                        {@code {KEY1=value1, KEY2=value2}} form used elsewhere in this class
+     * @param attribute       the string possibly containing parameter references
+     * @return the attribute with all known parameter references substituted
+     */
+    private static String useParametersIfNeeded(String buildParameters, String attribute) {
+        if (attribute == null) {
+            return null;
+        }
+        if (buildParameters == null || !attribute.contains("$")) {
+            // Return a distinct instance so the result never shares a reference with the input.
+            return new String(attribute);
+        }
+        StringBuilder result = new StringBuilder(attribute);
+        String[] buildParametersArray = buildParameters.replace("{", "").replace("}", "").split(",");
+        for (String buildParameter : buildParametersArray) {
+            String trimmedParameter = buildParameter.trim();
+            int separatorIndex = trimmedParameter.indexOf('=');
+            if (separatorIndex <= 0) {
+                continue;
+            }
+            String parameterName = trimmedParameter.substring(0, separatorIndex);
+            String parameterValue = trimmedParameter.substring(separatorIndex + 1);
+            // Substitute both the ${PARAM} and $PARAM notations.
+            replaceAll(result, "${" + parameterName + "}", parameterValue);
+            replaceAll(result, "$" + parameterName, parameterValue);
+        }
+        return result.toString();
+    }
+
+    /**
+     * Replaces every occurrence of {@code target} in {@code builder} with
+     * {@code replacement}, in place.
+     */
+    private static void replaceAll(StringBuilder builder, String target, String replacement) {
+        if (target.isEmpty()) {
+            return;
+        }
+        int index = builder.indexOf(target);
+        while (index != -1) {
+            builder.replace(index, index + target.length(), replacement);
+            index = builder.indexOf(target, index + replacement.length());
+        }
+    }
+    // Amazon Q GenAI Generated code - End
 
     private String verifyStringValueIsIntAndPositive(String supplied, int defaultValue) {
         if (supplied != null && isInteger(supplied)) {
@@ -298,7 +354,7 @@ public class PcTestRunModel {
 
     public String getDescription(boolean fromPcClient) {
 
-        return fromPcClient ? useParameterIfNeeded(buildParameters, this.description) : getDescription();
+        return fromPcClient ? useParametersIfNeeded(buildParameters, this.description) : getDescription();
     }
     
     public boolean httpsProtocol() {
