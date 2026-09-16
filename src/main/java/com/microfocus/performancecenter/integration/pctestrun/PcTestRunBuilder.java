@@ -101,7 +101,7 @@ public class PcTestRunBuilder extends Builder implements SimpleBuildStep {
     private UsernamePasswordCredentials usernamePCPasswordCredentials;
     private UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
     private transient Run<?, ?> _run;
-    private PrintStream logger;
+    private transient PrintStream logger;
     private final String timeslotDurationHours;
     private final String timeslotDurationMinutes;
     private final boolean statusBySLA;
