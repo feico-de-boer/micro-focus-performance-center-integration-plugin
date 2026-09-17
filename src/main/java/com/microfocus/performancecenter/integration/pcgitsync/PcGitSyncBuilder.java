@@ -88,7 +88,7 @@ public class PcGitSyncBuilder extends AbstractPcGitBuildStep<PcGitSyncBuilder.De
     private transient UsernamePasswordCredentials usernamePCPasswordCredentials;
     private transient UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
     private transient PrintStream logger;
-    private Run<?, ?> run;
+    private transient Run<?, ?> run;
     private final String description;
     private final String pcServerName;
     private final boolean httpsProtocol;

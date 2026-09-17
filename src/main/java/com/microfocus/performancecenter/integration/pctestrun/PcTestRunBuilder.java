@@ -124,8 +124,8 @@ public class PcTestRunBuilder extends Builder implements SimpleBuildStep {
     public static final String ERROR = "Error";
     private static final String artifactsDirectoryName = "archive";
     private static final String RUNID_BUILD_VARIABLE = "PC_RUN_ID";
-    private UsernamePasswordCredentials usernamePCPasswordCredentials;
-    private UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
+    private transient UsernamePasswordCredentials usernamePCPasswordCredentials;
+    private transient UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
     private transient Run<?, ?> _run;
     private transient PrintStream logger;
     private final String timeslotDurationHours;
@@ -158,12 +158,12 @@ public class PcTestRunBuilder extends Builder implements SimpleBuildStep {
     private boolean searchTimeslot;
     private int runId;
     private String testName;
-    private FilePath pcReportFile;
-    private FilePath pcNVInsgithsFile;
+    private transient FilePath pcReportFile;
+    private transient FilePath pcNVInsgithsFile;
     private String junitResultsFileName;
     private File WorkspacePath;
-    private FilePath Workspace;
-    private TaskListener listener;
+    private transient FilePath Workspace;
+    private transient TaskListener listener;
     private ConfigureSystemSection configureSystemSection;
 
     @DataBoundConstructor
